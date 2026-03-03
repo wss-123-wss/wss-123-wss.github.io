@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+        <meta name="theme-color" content="#2563eb">
+        <meta name="description" content="物体报价核算系统 - 根据长宽高质量智能计算最优报价方案">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+        <meta name="apple-mobile-web-app-title" content="物体报价核算">
+        <link rel="apple-touch-icon" href="icon-192x192.png">
+        <link rel="manifest" href="manifest.json">
+        <title>物体报价核算系统</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link href="https://cdn.jsdelivr.net/npm/font-awesome@470/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#2563eb',
+                        secondary: '#10b981',
+                        accent: '#8b5cf6',
+                        neutral: '#6b7280',
+                        'neutral-light': '#f3f4f6',
+                        'neutral-dark': '#374151'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif']
+                    },
+                    boxShadow: {
+                        'card': '0 4px 6px -1px rgba(0, 0, 0, 01), 0 2px 4px -1px rgba(0, 0, 0, 006)',
+                        'card-hover': '0 10px 15px -3px rgba(0, 0, 0, 01), 0 4px 6px -2px rgba(0, 0, 0, 005)'
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .glass-effect {
+                background: rgba(255, 255, 255, 01);
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(255, 255, 255, 02);
+            }
+            
+            .input-focus {
+                @apply focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-200;
+            }
+            
+            .btn-primary {
+                @apply bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary/90 transition-all duration-200 transform hover:scale-105 focus:ring-2 focus:ring-primary/50;
+            }
+            
+            .btn-secondary {
+                @apply bg-secondary text-white px-6 py-2 rounded-lg hover:bg-secondary/90 transition-all duration-200 transform hover:scale-105 focus:ring-2 focus:ring-secondary/50;
+            }
+            
+            .card {
+                @apply bg-white rounded-xl shadow-card p-6 transition-all duration-300 hover:shadow-card-hover;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8 max-w-7xl">
+        <!-- 头部 -->
+        <header class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-neutral-dark mb-2">物体报价核算系统</h1>
+            <p class="text-neutral text-lg">根据长宽高质量智能计算最优报价方案</p>
+        </header>
+
+        <!-- 主要内容 -->
+        <div class="grid md:grid-cols-2 gap-8">
+            <!-- 输入表单 -->
+            <div class="card">
+                <h2 class="text-2xl font-bold text-neutral-dark mb-6 flex items-center">
+                    <i class="fa fa-calculator text-primary mr-3"></i>
+                    参数设置
+                </h2>
+                
+                <form id="quoteForm" class="space-y-6">
+                    <!-- 形状选择 -->
+                    <div>
+                        <label class="block text-sm font-medium text-neutral-dark mb-2">
+                            形状
+                        </label>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <label class="flex items-center p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-blue-50 transition-colors">
+                                <input type="radio" name="shape" value="rectangle" checked
+                                    class="text-primary focus:ring-primary">
+                                <span class="ml-3 text-sm font-medium">长方体</span>
+                            </label>
+                            <label class="flex items-center p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-blue-50 transition-colors">
+                                <input type="radio" name="shape" value="circle"
+                                    class="text-primary focus:ring-primary">
+                                <span class="ml-3 text-sm font-medium">圆形</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- 长方体尺寸输入 -->
+                    <div id="rectangleDimensions" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-neutral-dark mb-2">
+                                长度 (mm)
+                            </label>
+                            <input type="number" id="length" step="01" min="0" required
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg input-focus"
+                                placeholder="请输入长度">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-neutral-dark mb-2">
+                                宽度 (mm)
+                            </label>
+                            <input type="number" id="width" step="01" min="0" required
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg input-focus"
+                                placeholder="请输入宽度">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-neutral-dark mb-2">
+                                高度 (mm)
+                            </label>
+                            <input type="number" id="height" step="01" min="0" required
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg input-focus"
+                                placeholder="请输入高度">
+                        </div>
+                    </div>
+
+                    <!-- 圆形尺寸输入 (初始隐藏) -->
+                    <div id="circleDimensions" class="grid grid-cols-1 md:grid-cols-2 gap-4 hidden">
+                        <div>
+                            <label class="block text-sm font-medium text-neutral-dark mb-2">
+                                半径 (mm)
+                            </label>
+                            <input type="number" id="radius" step="01" min="0" required
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg input-focus"
+                                placeholder="请输入半径">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-neutral-dark mb-2">
+                                高度 (mm)
+                            </label>
+                            <input type="number" id="circleHeight" step="01" min="0" required
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg input-focus"
+                                placeholder="请输入高度">
+                        </div>
+                    </div>
+
+                    <!-- 物体属性 -->
+                    <div>
+                        <label class="block text-sm font-medium text-neutral-dark mb-2">
+                            物体属性
+                        </label>
+                        <select id="material" required
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg input-focus">
+                            <option value="">请选择材料</option>
+                            <option value="copper">铜</option>
+                            <option value="iron">铁</option>
+                            <option value="stainless">不锈钢</option>
+                            <option value="aluminum">铝</option>
+                        </select>
+                    </div>
+
+                    <!-- 质量输入（自动计算） -->
+                    <div>
+                        <label class="block text-sm font-medium text-neutral-dark mb-2">
+                            质量 (kg) <span class="text-xs text-neutral">（自动计算）</span>
+                        </label>
+                        <input type="number" id="weight" step="01" min="0" readonly
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg input-focus bg-gray-50"
+                            placeholder="质量将自动计算">
+                    </div>
+
+                    <!-- 计费方式 -->
+                    <div>
+                        <label class="block text-sm font-medium text-neutral-dark mb-3">
+                            计费方式
+                        </label>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <label class="flex items-center p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-blue-50 transition-colors">
+                                <input type="radio" name="pricingMethod" value="volume" checked
+                                    class="text-primary focus:ring-primary">
+                                <span class="ml-3 text-sm font-medium">体积计费</span>
+                            </label>
+                            <label class="flex items-center p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-blue-50 transition-colors">
+                                <input type="radio" name="pricingMethod" value="weight"
+                                    class="text-primary focus:ring-primary">
+                                <span class="ml-3 text-sm font-medium">质量计费</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- 单价设置 -->
+                    <div class="bg-blue-50 rounded-lg p-4">
+                        <h3 class="text-sm font-semibold text-neutral-dark mb-3">单价设置（元）</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs text-neutral mb-1">体积单价 (元/cm³)</label>
+                                <input type="number" id="volumePrice" step="0001" min="0" value="0005"
+                                    class="w-full px-3 py-1 text-sm border border-gray-300 rounded input-focus">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-neutral mb-1">质量单价 (元/kg)</label>
+                                <input type="number" id="weightPrice" step="001" min="0" value="25"
+                                    class="w-full px-3 py-1 text-sm border border-gray-300 rounded input-focus">
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-primary w-full">
+                        <i class="fa fa-calculator mr-2"></i>
+                        开始核算报价
+                    </button>
+                </form>
+            </div>
+
+            <!-- 结果显示 -->
+            <div class="card">
+                <h2 class="text-2xl font-bold text-neutral-dark mb-6 flex items-center">
+                    <i class="fa fa-line-chart text-secondary mr-3"></i>
+                    核算结果
+                </h2>
+                
+                <div id="resultContainer" class="space-y-6">
+                    <!-- 等待计算提示 -->
+                    <div id="waitingMessage" class="text-center py-12">
+                        <div>
+                            <i class="fa fa-spinner fa-spin text-4xl text-primary mb-4"></i>
+                            <p class="text-neutral">请输入参数并点击核算按钮</p>
+                        </div>
+                    </div>
+
+                    <!-- 结果显示区域（初始隐藏） -->
+                    <div id="resultContent" class="hidden space-y-6">
+                        <!-- 最终报价 -->
+                        <div class="bg-gradient-to-r from-primary/10 to-secondary/10 rounded-xl p-6 text-center">
+                            <h3 class="text-lg font-semibold text-neutral-dark mb-2">最终报价</h3>
+                            <div class="text-4xl font-bold text-primary" id="finalPrice">¥000</div>
+                            <p class="text-sm text-neutral mt-2" id="priceMethod">体积计费方案</p>
+                        </div>
+
+                        <!-- 详细计算 -->
+                        <div class="bg-white border border-gray-200 rounded-lg p-4">
+                            <h3 class="text-lg font-semibold text-neutral-dark mb-4">计算明细</h3>
+                            <div class="space-y-3 text-sm" id="calculationDetails">
+                                <!-- 计算明细将在这里动态生成 -->
+                            </div>
+                        </div>
+
+                        <!-- 方案对比 -->
+                        <div class="bg-white border border-gray-200 rounded-lg p-4">
+                            <h3 class="text-lg font-semibold text-neutral-dark mb-4">方案对比</h3>
+                            <div class="grid grid-cols-3 gap-2 text-center text-xs">
+                                <div class="font-medium text-neutral-dark">计费方式</div>
+                                <div class="font-medium text-neutral-dark">计算结果</div>
+                                <div class="font-medium text-neutral-dark">推荐</div>
+                                <div id="volumeMethod" class="py-2 border-t border-gray-100">体积计费</div>
+                                <div id="volumeResult" class="py-2 border-t border-gray-100">¥000</div>
+                                <div id="volumeRecommend" class="py-2 border-t border-gray-100"></div>
+                                <div id="weightMethod" class="py-2 border-t border-gray-100">质量计费</div>
+                                <div id="weightResult" class="py-2 border-t border-gray-100">¥000</div>
+                                <div id="weightRecommend" class="py-2 border-t border-gray-100"></div>
+                            </div>
+                        </div>
+
+                        <!-- 快速操作 -->
+                        <div class="flex space-x-4">
+                            <button id="resetBtn" class="flex-1 btn-secondary">
+                                <i class="fa fa-refresh mr-2"></i>
+                                重新计算
+                            </button>
+                            <button id="copyBtn" class="flex-1 bg-accent text-white px-6 py-2 rounded-lg hover:bg-accent/90 transition-all duration-200">
+                                <i class="fa fa-copy mr-2"></i>
+                                复制结果
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 历史记录 -->
+        <div class="mt-8 card">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-neutral-dark flex items-center">
+                    <i class="fa fa-history text-accent mr-3"></i>
+                    历史记录
+                </h2>
+                <button id="clearHistoryBtn" class="text-sm text-red-500 hover:text-red-700 flex items-center">
+                    <i class="fa fa-trash mr-2"></i>
+                    清除历史
+                </button>
+            </div>
+            <div id="historyContainer" class="space-y-3">
+                <p class="text-neutral text-center py-4">暂无历史记录</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class QuoteCalculator {
+            constructor() {
+                this.history = JSON.parse(localStorage.getItem('quoteHistory') || '[]');
+                this.materialDensities = {
+                    copper: 8.96,      // 铜的密度 (g/cm³)
+                    iron: 7.87,        // 铁的密度 (g/cm³)
+                    stainless: 7.93,   // 不锈钢的密度 (g/cm³)
+                    aluminum: 2.70     // 铝的密度 (g/cm³)
+                };
+                this.init();
+            }
+
+            init() {
+                this.bindEvents();
+                this.loadHistory();
+            }
+
+            bindEvents() {
+                // 表单提交
+                document.getElementById('quoteForm').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.calculateQuote();
+                });
+
+                // 重置按钮
+                document.getElementById('resetBtn').addEventListener('click', () => {
+                    this.resetForm();
+                });
+
+                // 复制按钮
+                document.getElementById('copyBtn').addEventListener('click', () => {
+                    this.copyResult();
+                });
+
+                // 实时计算（输入变化时）
+                const inputs = ['length', 'width', 'height', 'volumePrice', 'weightPrice'];
+                inputs.forEach(id => {
+                    document.getElementById(id).addEventListener('input', () => {
+                        this.updateWeight();
+                        if (this.validateForm()) {
+                            this.calculateQuote();
+                        }
+                    });
+                });
+
+                // 材料选择变化时
+                document.getElementById('material').addEventListener('change', () => {
+                    this.updateWeight();
+                    if (this.validateForm()) {
+                        this.calculateQuote();
+                    }
+                });
+
+                // 形状选择变化时
+                document.querySelectorAll('input[name="shape"]').forEach(radio => {
+                    radio.addEventListener('change', () => {
+                        this.toggleDimensionsForm();
+                        this.updateWeight();
+                        if (this.validateForm()) {
+                            this.calculateQuote();
+                        }
+                    });
+                });
+
+                // 圆形尺寸输入变化时
+                const circleInputs = ['radius', 'circleHeight'];
+                circleInputs.forEach(id => {
+                    document.getElementById(id).addEventListener('input', () => {
+                        this.updateWeight();
+                        if (this.validateForm()) {
+                            this.calculateQuote();
+                        }
+                    });
+                });
+
+                // 计费方式变化时
+                document.querySelectorAll('input[name="pricingMethod"]').forEach(radio => {
+                    radio.addEventListener('change', () => {
+                        if (this.validateForm()) {
+                            this.calculateQuote();
+                        }
+                    });
+                });
+
+                // 清除历史记录按钮
+                document.getElementById('clearHistoryBtn').addEventListener('click', () => {
+                    this.clearHistory();
+                });
+            }
+
+            clearHistory() {
+                if (confirm('确定要清除所有历史记录吗？')) {
+                    this.history = [];
+                    localStorage.removeItem('quoteHistory');
+                    this.loadHistory();
+                }
+            }
+
+            toggleDimensionsForm() {
+                const shape = document.querySelector('input[name="shape"]:checked').value;
+                const rectangleForm = document.getElementById('rectangleDimensions');
+                const circleForm = document.getElementById('circleDimensions');
+                
+                if (shape === 'rectangle') {
+                    rectangleForm.classList.remove('hidden');
+                    circleForm.classList.add('hidden');
+                } else {
+                    rectangleForm.classList.add('hidden');
+                    circleForm.classList.remove('hidden');
+                }
+            }
+
+            validateForm() {
+                const shape = document.querySelector('input[name="shape"]:checked').value;
+                const material = document.getElementById('material').value;
+                
+                if (shape === 'rectangle') {
+                    const length = parseFloat(document.getElementById('length').value);
+                    const width = parseFloat(document.getElementById('width').value);
+                    const height = parseFloat(document.getElementById('height').value);
+                    
+                    return !isNaN(length) && !isNaN(width) && !isNaN(height) &&
+                           length > 0 && width > 0 && height > 0 && material !== '';
+                } else {
+                    const radius = parseFloat(document.getElementById('radius').value);
+                    const height = parseFloat(document.getElementById('circleHeight').value);
+                    
+                    return !isNaN(radius) && !isNaN(height) &&
+                           radius > 0 && height > 0 && material !== '';
+                }
+            }
+
+            updateWeight() {
+                const shape = document.querySelector('input[name="shape"]:checked').value;
+                const material = document.getElementById('material').value;
+                const weightInput = document.getElementById('weight');
+                
+                if (shape === 'rectangle') {
+                    const length = parseFloat(document.getElementById('length').value);
+                    const width = parseFloat(document.getElementById('width').value);
+                    const height = parseFloat(document.getElementById('height').value);
+                    
+                    if (!isNaN(length) && !isNaN(width) && !isNaN(height) && length > 0 && width > 0 && height > 0 && material !== '') {
+                        // 转换为厘米
+                        const lengthCm = length / 10;
+                        const widthCm = width / 10;
+                        const heightCm = height / 10;
+                        const volume = lengthCm * widthCm * heightCm; // 体积 (cm³)
+                        const density = this.materialDensities[material]; // 密度 (g/cm³)
+                        const weight = (volume * density) / 1000; // 转换为 kg
+                        weightInput.value = weight.toFixed(4);
+                    } else {
+                        weightInput.value = '';
+                    }
+                } else {
+                    const radius = parseFloat(document.getElementById('radius').value);
+                    const height = parseFloat(document.getElementById('circleHeight').value);
+                    
+                    if (!isNaN(radius) && !isNaN(height) && radius > 0 && height > 0 && material !== '') {
+                        // 转换为厘米
+                        const radiusCm = radius / 10;
+                        const heightCm = height / 10;
+                        const volume = Math.PI * radiusCm * radiusCm * heightCm; // 体积 (cm³)
+                        const density = this.materialDensities[material]; // 密度 (g/cm³)
+                        const weight = (volume * density) / 1000; // 转换为 kg
+                        weightInput.value = weight.toFixed(4);
+                    } else {
+                        weightInput.value = '';
+                    }
+                }
+            }
+
+            calculateQuote() {
+                if (!this.validateForm()) return;
+
+                const shape = document.querySelector('input[name="shape"]:checked').value;
+                const material = document.getElementById('material').value;
+                const weight = parseFloat(document.getElementById('weight').value);
+                const volumePrice = parseFloat(document.getElementById('volumePrice').value);
+                const weightPrice = parseFloat(document.getElementById('weightPrice').value);
+                const pricingMethod = document.querySelector('input[name="pricingMethod"]:checked').value;
+
+                let volume, dimensions;
+                if (shape === 'rectangle') {
+                    const length = parseFloat(document.getElementById('length').value);
+                    const width = parseFloat(document.getElementById('width').value);
+                    const height = parseFloat(document.getElementById('height').value);
+                    // 转换为厘米
+                    const lengthCm = length / 10;
+                    const widthCm = width / 10;
+                    const heightCm = height / 10;
+                    volume = lengthCm * widthCm * heightCm;
+                    dimensions = { length, width, height, weight, volume };
+                } else {
+                    const radius = parseFloat(document.getElementById('radius').value);
+                    const height = parseFloat(document.getElementById('circleHeight').value);
+                    // 转换为厘米
+                    const radiusCm = radius / 10;
+                    const heightCm = height / 10;
+                    volume = Math.PI * radiusCm * radiusCm * heightCm;
+                    dimensions = { radius, height, weight, volume };
+                }
+
+                // 计算各种方案的价格
+                const volumeQuote = volume * volumePrice;
+                const weightQuote = weight * weightPrice;
+
+                // 根据选择的计费方式确定最终价格
+                let finalPrice, methodName;
+                switch (pricingMethod) {
+                    case 'volume':
+                        finalPrice = volumeQuote;
+                        methodName = '体积计费方案';
+                        break;
+                    case 'weight':
+                        finalPrice = weightQuote;
+                        methodName = '质量计费方案';
+                        break;
+                }
+
+                // 材料名称映射
+                const materialNames = {
+                    copper: '铜',
+                    iron: '铁',
+                    stainless: '不锈钢',
+                    aluminum: '铝'
+                };
+
+                // 显示结果
+                this.displayResult({
+                    shape,
+                    dimensions,
+                    material: materialNames[material],
+                    prices: { volumeQuote, weightQuote, finalPrice },
+                    method: { name: methodName, type: pricingMethod },
+                    unitPrices: { volumePrice, weightPrice }
+                });
+
+                // 保存到历史记录
+                this.saveToHistory({
+                    shape,
+                    dimensions,
+                    material: materialNames[material],
+                    prices: { volumeQuote, weightQuote, finalPrice },
+                    method: { name: methodName, type: pricingMethod },
+                    unitPrices: { volumePrice, weightPrice },
+                    timestamp: new Date().toISOString()
+                });
+            }
+
+            displayResult(data) {
+                // 隐藏等待消息，显示结果
+                document.getElementById('waitingMessage').style.display = 'none';
+                document.getElementById('resultContent').classList.remove('hidden');
+
+                // 显示最终价格
+                document.getElementById('finalPrice').textContent = `¥${data.prices.finalPrice.toFixed(2)}`;
+                document.getElementById('priceMethod').textContent = data.method.name;
+
+                // 显示计算明细
+                this.displayCalculationDetails(data);
+
+                // 显示方案对比
+                this.displayMethodComparison(data);
+            }
+
+            displayCalculationDetails(data) {
+                const detailsContainer = document.getElementById('calculationDetails');
+                const { shape, dimensions, unitPrices, method, material } = data;
+
+                let details = `
+                    <div class="grid grid-cols-2 gap-2">
+                        <span class="text-neutral">材料：</span>
+                        <span class="font-medium">${material}</span>
+                `;
+
+                if (shape === 'rectangle') {
+                    details += `
+                        <span class="text-neutral">形状：</span>
+                        <span class="font-medium">长方体</span>
+                        <span class="text-neutral">尺寸：</span>
+                        <span class="font-medium">${dimensions.length} × ${dimensions.width} × ${dimensions.height} mm</span>
+                    `;
+                } else {
+                    details += `
+                        <span class="text-neutral">形状：</span>
+                        <span class="font-medium">圆形</span>
+                        <span class="text-neutral">尺寸：</span>
+                        <span class="font-medium">半径 ${dimensions.radius} mm，高度 ${dimensions.height} mm</span>
+                    `;
+                }
+
+                details += `
+                        <span class="text-neutral">体积：</span>
+                        <span class="font-medium">${dimensions.volume.toFixed(2)} cm³</span>
+                        <span class="text-neutral">质量：</span>
+                        <span class="font-medium">${parseFloat(dimensions.weight).toFixed(4)} kg</span>
+                    </div>
+                    <div class="mt-3 pt-3 border-t border-gray-100">
+                        <div class="font-medium mb-2">计算公式：</div>
+                `;
+
+                switch (method.type) {
+                    case 'volume':
+                        details += `
+                            <div class="text-primary">
+                                体积 × 体积单价 = ${dimensions.volume.toFixed(2)} × ${unitPrices.volumePrice} = ¥${data.prices.volumeQuote.toFixed(2)}
+                            </div>
+                        `;
+                        break;
+                    case 'weight':
+                        details += `
+                            <div class="text-secondary">
+                                质量 × 质量单价 = ${dimensions.weight} × ${unitPrices.weightPrice} = ¥${data.prices.weightQuote.toFixed(2)}
+                            </div>
+                        `;
+                        break;
+                }
+
+                details += `</div>`;
+                detailsContainer.innerHTML = details;
+            }
+
+            displayMethodComparison(data) {
+                const { prices, method } = data;
+
+                // 更新各方案价格
+                document.getElementById('volumeResult').textContent = `¥${prices.volumeQuote.toFixed(2)}`;
+                document.getElementById('weightResult').textContent = `¥${prices.weightQuote.toFixed(2)}`;
+
+                // 清除所有推荐标记
+                ['volumeRecommend', 'weightRecommend'].forEach(id => {
+                    document.getElementById(id).innerHTML = '';
+                });
+
+                // 标记当前选择的方案
+                const recommendId = method.type + 'Recommend';
+                document.getElementById(recommendId).innerHTML = '<i class="fa fa-check-circle text-green-500"></i>';
+
+                // 高亮显示
+                const methodIds = {
+                    volume: ['volumeMethod', 'volumeResult', 'volumeRecommend'],
+                    weight: ['weightMethod', 'weightResult', 'weightRecommend']
+                };
+
+                // 清除所有高亮
+                Object.values(methodIds).flat().forEach(id => {
+                    document.getElementById(id).classList.remove('bg-blue-50', 'font-medium');
+                });
+
+                // 添加当前方案高亮
+                methodIds[method.type].forEach(id => {
+                    document.getElementById(id).classList.add('bg-blue-50', 'font-medium');
+                });
+            }
+
+            saveToHistory(record) {
+                this.history.unshift(record);
+                if (this.history.length > 10) {
+                    this.history = this.history.slice(0, 10);
+                }
+                localStorage.setItem('quoteHistory', JSON.stringify(this.history));
+                this.loadHistory();
+            }
+
+            loadHistory() {
+                const container = document.getElementById('historyContainer');
+                
+                if (this.history.length === 0) {
+                    container.innerHTML = '<p class="text-neutral text-center py-4">暂无历史记录</p>';
+                    return;
+                }
+
+                const historyHtml = this.history.map((record, index) => {
+                    const date = new Date(record.timestamp);
+                    const timeString = date.toLocaleString('zh-CN', {
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+
+                    let shapeText = record.shape === 'rectangle' ? '长方体' : '圆形';
+                    let dimensionsText;
+                    if (record.shape === 'rectangle') {
+                        dimensionsText = `${record.dimensions.length}×${record.dimensions.width}×${record.dimensions.height}mm`;
+                    } else {
+                        dimensionsText = `半径${record.dimensions.radius}mm×高${record.dimensions.height}mm`;
+                    }
+                    
+                    return `
+                        <div class="bg-white border border-gray-200 rounded-lg p-3 hover:bg-blue-50 cursor-pointer transition-colors" 
+                             onclick="quoteCalculator.loadFromHistory(${index})")">
+                            <div class="flex justify-between items-center">
+                                <div class="font-medium text-primary">¥${record.prices.finalPrice.toFixed(2)}</div>
+                                <div class="text-xs text-neutral">${timeString}</div>
+                            </div>
+                            <div class="text-sm mt-1">
+                                ${shapeText} | ${record.material || ''} | ${dimensionsText} | 
+                                ${record.dimensions.weight}kg | 
+                                <span class="text-xs px-2 py-1 bg-blue-100 text-blue-800 rounded-full">${record.method.name}</span>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                container.innerHTML = historyHtml;
+            }
+
+            loadFromHistory(index) {
+                const record = this.history[index];
+                
+                // 选择形状
+                if (record.shape) {
+                    document.querySelector(`input[name="shape"][value="${record.shape}"]`).checked = true;
+                    this.toggleDimensionsForm();
+                }
+
+                // 填充尺寸表单
+                if (record.shape === 'rectangle') {
+                    document.getElementById('length').value = record.dimensions.length;
+                    document.getElementById('width').value = record.dimensions.width;
+                    document.getElementById('height').value = record.dimensions.height;
+                } else {
+                    document.getElementById('radius').value = record.dimensions.radius;
+                    document.getElementById('circleHeight').value = record.dimensions.height;
+                }
+
+                // 填充其他表单
+                document.getElementById('weight').value = record.dimensions.weight;
+                document.getElementById('volumePrice').value = record.unitPrices.volumePrice;
+                document.getElementById('weightPrice').value = record.unitPrices.weightPrice;
+
+                // 材料名称映射
+                const materialMap = {
+                    '铜': 'copper',
+                    '铁': 'iron',
+                    '不锈钢': 'stainless',
+                    '铝': 'aluminum'
+                };
+
+                // 选择材料
+                if (record.material) {
+                    const materialValue = materialMap[record.material] || '';
+                    document.getElementById('material').value = materialValue;
+                }
+
+                // 选择计费方式
+                document.querySelector(`input[name="pricingMethod"][value="${record.method.type}"]`).checked = true;
+
+                // 重新计算
+                this.calculateQuote();
+
+                // 滚动到结果区域
+                document.getElementById('resultContainer').scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+
+            resetForm() {
+                document.getElementById('quoteForm').reset();
+                document.getElementById('waitingMessage').style.display = 'block';
+                document.getElementById('resultContent').classList.add('hidden');
+            }
+
+            copyResult() {
+                const finalPrice = document.getElementById('finalPrice').textContent;
+                const priceMethod = document.getElementById('priceMethod').textContent;
+                
+                const resultText = `报价结果：${finalPrice}\n计费方式：${priceMethod}`;
+                
+                navigator.clipboard.writeText(resultText).then(() => {
+                    const copyBtn = document.getElementById('copyBtn');
+                    const originalText = copyBtn.innerHTML;
+                    
+                    copyBtn.innerHTML = '<i class="fa fa-check mr-2"></i>已复制';
+                    copyBtn.classList.remove('bg-accent');
+                    copyBtn.classList.add('bg-green-500');
+                    
+                    setTimeout(() => {
+                        copyBtn.innerHTML = originalText;
+                        copyBtn.classList.remove('bg-green-500');
+                        copyBtn.classList.add('bg-accent');
+                    }, 2000);
+                });
+            }
+        }
+
+        // 初始化应用
+        let quoteCalculator;
+        document.addEventListener('DOMContentLoaded', () => {
+            quoteCalculator = new QuoteCalculator();
+        });
+
+        // 注册Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('service-worker.js')
+                    .then((registration) => {
+                        console.log('Service Worker registered with scope:', registration.scope);
+                    })
+                    .catch((error) => {
+                        console.error('Service Worker registration failed:', error);
+                    });
+            });
+        }
+    </script>
+</body>
+</html>
